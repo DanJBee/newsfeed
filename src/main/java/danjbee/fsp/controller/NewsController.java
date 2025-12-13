@@ -44,23 +44,26 @@ public class NewsController {
     }
 
     /**
-     * Handles GET requests to /news endpoint with optional locale parameter.
+     * Handles GET requests to /news endpoint with optional locale and category parameters.
      * 
-     * Retrieves top news stories for the specified region and adds them to the model
-     * for rendering in the Thymeleaf template.
+     * Retrieves top news stories for the specified region and category, adding them to the model
+     * for rendering in the Thymeleaf template. Both filters can be applied simultaneously.
      * 
      * Example URLs:
-     * - /news (defaults to US)
-     * - /news?locale=gb (UK news)
-     * - /news?locale=au (Australian news)
+     * - /news (defaults to US, general)
+     * - /news?locale=gb (UK news, general category)
+     * - /news?category=business (US business news)
+     * - /news?locale=au&category=technology (Australian technology news)
      * 
      * @param locale Optional country/region code (defaults to "us")
+     * @param category Optional news category (defaults to "general")
      * @param model Spring MVC model to pass data to the view
      * @return Name of the Thymeleaf template to render ("news")
      */
     @GetMapping("/news")
     public String getNews(
             @RequestParam(value = "locale", required = false, defaultValue = "us") String locale,
+            @RequestParam(value = "category", required = false, defaultValue = "general") String category,
             Model model) {
         
         // Provide a curated list of popular regions for the dropdown
@@ -75,10 +78,23 @@ public class NewsController {
         availableRegions.put("nz", "New Zealand");
         availableRegions.put("sg", "Singapore");
         
-        // Fetch articles from service layer for the specified locale
-        model.addAttribute("articles", newsService.getTopStories(locale));
+        // Provide a list of news categories
+        // These categories are supported by The News API
+        Map<String, String> availableCategories = new LinkedHashMap<>();
+        availableCategories.put("general", "General");
+        availableCategories.put("business", "Business");
+        availableCategories.put("entertainment", "Entertainment");
+        availableCategories.put("health", "Health");
+        availableCategories.put("science", "Science");
+        availableCategories.put("sports", "Sports");
+        availableCategories.put("technology", "Technology");
+        
+        // Fetch articles from service layer for the specified locale and category
+        model.addAttribute("articles", newsService.getTopStories(locale, category));
         model.addAttribute("regions", availableRegions);
+        model.addAttribute("categories", availableCategories);
         model.addAttribute("selectedLocale", locale);
+        model.addAttribute("selectedCategory", category);
         
         // Return view name - Spring resolves this to src/main/resources/templates/news.html
         return "news";

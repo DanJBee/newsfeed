@@ -22,11 +22,19 @@
             margin-bottom: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .filter-section label {
             font-weight: bold;
-            margin-right: 10px;
             color: #333;
         }
         .filter-section select {
@@ -82,27 +90,43 @@
         }
     </style>
     <script>
-        // Automatically navigate when region is changed
-        function changeRegion(select) {
-            const locale = select.value;
-            window.location.href = '/news?locale=' + locale;
+        // Automatically navigate when filters change
+        // Preserves both locale and category selections
+        function updateFilters() {
+            const locale = document.getElementById('regionSelect').value;
+            const category = document.getElementById('categorySelect').value;
+            window.location.href = '/news?locale=' + locale + '&category=' + category;
         }
     </script>
 </head>
 <body>
     <h1>Top News Stories</h1>
     
-    <!-- Region Filter Section -->
+    <!-- Filter Section with Region and Category -->
     <div class="filter-section">
-        <label for="regionSelect">Select Region:</label>
-        <select id="regionSelect" onchange="changeRegion(this)">
-            <option th:each="region : ${regions}" 
-                    th:value="${region.key}" 
-                    th:text="${region.value}"
-                    th:selected="${region.key == selectedLocale}">
-                Region
-            </option>
-        </select>
+        <div class="filter-group">
+            <label for="regionSelect">Select Region:</label>
+            <select id="regionSelect" onchange="updateFilters()">
+                <option th:each="region : ${regions}" 
+                        th:value="${region.key}" 
+                        th:text="${region.value}"
+                        th:selected="${region.key == selectedLocale}">
+                    Region
+                </option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="categorySelect">Select Category:</label>
+            <select id="categorySelect" onchange="updateFilters()">
+                <option th:each="category : ${categories}" 
+                        th:value="${category.key}" 
+                        th:text="${category.value}"
+                        th:selected="${category.key == selectedCategory}">
+                    Category
+                </option>
+            </select>
+        </div>
     </div>
     
     <div th:if="${articles != null and !articles.isEmpty()}">

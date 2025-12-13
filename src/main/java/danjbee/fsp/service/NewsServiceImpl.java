@@ -32,28 +32,34 @@ public class NewsServiceImpl implements NewsService {
     private String token;
 
     /**
-     * Fetches top news stories from The News API for a specific locale.
+     * Fetches top news stories from The News API for a specific locale and category.
      * 
      * Uses Spring's caching abstraction with Caffeine to cache results for 24 hours.
      * This prevents excessive API calls and improves response time for users.
-     * Cache key includes locale to ensure region-specific caching.
+     * Cache key combines locale and category to ensure filter-specific caching.
      * 
      * @param locale The country/region code (e.g., "us", "gb", "au")
+     * @param category The news category (e.g., "general", "business", "technology")
      * @return List of up to 3 news articles, or empty list if API call fails
      */
     @Override
-    @Cacheable(value = "newsCache", key = "#locale", unless = "#result.isEmpty()")
-    public List<NewsArticle> getTopStories(String locale) {
+    @Cacheable(value = "newsCache", key = "#locale + '-' + #category", unless = "#result.isEmpty()")
+    public List<NewsArticle> getTopStories(String locale, String category) {
         // Default to US if no locale specified
         if (locale == null || locale.trim().isEmpty()) {
             locale = "us";
         }
         
+        // Default to general if no category specified
+        if (category == null || category.trim().isEmpty()) {
+            category = "general";
+        }
+        
         // Using RestTemplate for HTTP communication - Spring's synchronous REST client
         RestTemplate restTemplate = new RestTemplate();
-        // Build API URL with dynamic locale parameter
+        // Build API URL with dynamic locale and category parameters
         String apiUrl = "https://api.thenewsapi.com/v1/news/top?api_token=" + token 
-                + "&locale=" + locale + "&limit=3";
+                + "&locale=" + locale + "&categories=" + category + "&limit=3";
         
         List<NewsArticle> articles = new ArrayList<>();
         
