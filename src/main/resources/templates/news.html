@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top News Stories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .filter-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .filter-section label {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #333;
+        }
+        .filter-section select {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        .filter-section select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .article {
+            background: white;
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .article img {
+            max-width: 300px;
+            height: auto;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .article h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .article p {
+            color: #555;
+            line-height: 1.6;
+        }
+        .article .meta {
+            color: #888;
+            font-size: 0.9em;
+            margin: 10px 0;
+        }
+        .article a {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .article a:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        // Automatically navigate when region is changed
+        function changeRegion(select) {
+            const locale = select.value;
+            window.location.href = '/news?locale=' + locale;
+        }
+    </script>
+</head>
+<body>
+    <h1>Top News Stories</h1>
+    
+    <!-- Region Filter Section -->
+    <div class="filter-section">
+        <label for="regionSelect">Select Region:</label>
+        <select id="regionSelect" onchange="changeRegion(this)">
+            <option th:each="region : ${regions}" 
+                    th:value="${region.key}" 
+                    th:text="${region.value}"
+                    th:selected="${region.key == selectedLocale}">
+                Region
+            </option>
+        </select>
+    </div>
+    
+    <div th:if="${articles != null and !articles.isEmpty()}">
+        <div class="article" th:each="article : ${articles}">
+            <img th:if="${article.imageUrl != null and !article.imageUrl.isEmpty()}" 
+                 th:src="${article.imageUrl}" 
+                 th:alt="${article.title}" />
+            <h2 th:text="${article.title}">Article Title</h2>
+            <div class="meta">
+                <span th:text="${article.source}">Source</span> | 
+                <span th:text="${article.publishedAt}">Date</span>
+            </div>
+            <p th:text="${article.description}">Article description</p>
+            <a th:href="${article.url}" target="_blank">Read Full Article</a>
+        </div>
+    </div>
+    
+    <div th:if="${articles == null or articles.isEmpty()}">
+        <p>No news articles available at the moment.</p>
+    </div>
+</body>
+</html>
