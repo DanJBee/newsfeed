@@ -88,14 +88,46 @@
         .article a:hover {
             background-color: #0056b3;
         }
+        .pagination {
+            background: white;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+        }
+        .pagination a {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .pagination a:hover {
+            background-color: #0056b3;
+        }
+        .pagination a.disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .pagination .page-info {
+            color: #333;
+            font-weight: bold;
+        }
     </style>
     <script>
         // Automatically navigate when filters change
-        // Preserves both locale and category selections
+        // Preserves both locale and category selections, resets to page 1
         function updateFilters() {
             const locale = document.getElementById('regionSelect').value;
             const category = document.getElementById('categorySelect').value;
-            window.location.href = '/news?locale=' + locale + '&category=' + category;
+            window.location.href = '/news?locale=' + locale + '&category=' + category + '&page=1';
         }
     </script>
 </head>
@@ -129,6 +161,23 @@
         </div>
     </div>
     
+    <!-- Pagination Controls (Top) -->
+    <div class="pagination" th:if="${articles != null and !articles.isEmpty()}">
+        <!-- Previous Page Link -->
+        <a th:href="@{/news(locale=${selectedLocale}, category=${selectedCategory}, page=${previousPage})}" 
+           th:classappend="${currentPage <= 1} ? 'disabled' : ''">
+            ← Previous
+        </a>
+        
+        <!-- Current Page Info -->
+        <span class="page-info">Page <span th:text="${currentPage}">1</span></span>
+        
+        <!-- Next Page Link -->
+        <a th:href="@{/news(locale=${selectedLocale}, category=${selectedCategory}, page=${nextPage})}">
+            Next →
+        </a>
+    </div>
+    
     <div th:if="${articles != null and !articles.isEmpty()}">
         <div class="article" th:each="article : ${articles}">
             <img th:if="${article.imageUrl != null and !article.imageUrl.isEmpty()}" 
@@ -146,6 +195,23 @@
     
     <div th:if="${articles == null or articles.isEmpty()}">
         <p>No news articles available at the moment.</p>
+    </div>
+    
+    <!-- Pagination Controls -->
+    <div class="pagination" th:if="${articles != null and !articles.isEmpty()}">
+        <!-- Previous Page Link -->
+        <a th:href="@{/news(locale=${selectedLocale}, category=${selectedCategory}, page=${previousPage})}" 
+           th:classappend="${currentPage <= 1} ? 'disabled' : ''">
+            ← Previous
+        </a>
+        
+        <!-- Current Page Info -->
+        <span class="page-info">Page <span th:text="${currentPage}">1</span></span>
+        
+        <!-- Next Page Link -->
+        <a th:href="@{/news(locale=${selectedLocale}, category=${selectedCategory}, page=${nextPage})}">
+            Next →
+        </a>
     </div>
 </body>
 </html>

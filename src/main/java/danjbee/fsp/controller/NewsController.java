@@ -44,19 +44,21 @@ public class NewsController {
     }
 
     /**
-     * Handles GET requests to /news endpoint with optional locale and category parameters.
+     * Handles GET requests to /news endpoint with optional locale, category and page parameters.
      * 
-     * Retrieves top news stories for the specified region and category, adding them to the model
-     * for rendering in the Thymeleaf template. Both filters can be applied simultaneously.
+     * Retrieves news stories for the specified region, category and page number, adding them to the model
+     * for rendering in the Thymeleaf template. All filters can be applied simultaneously with pagination.
      * 
      * Example URLs:
-     * - /news (defaults to US, general)
-     * - /news?locale=gb (UK news, general category)
-     * - /news?category=business (US business news)
-     * - /news?locale=au&category=technology (Australian technology news)
+     * - /news (defaults to US, general, page 1)
+     * - /news?locale=gb (UK news, general category, page 1)
+     * - /news?category=business (US business news, page 1)
+     * - /news?locale=au&category=technology (Australian technology news, page 1)
+     * - /news?locale=au&category=technology&page=2 (Australian technology news, page 2)
      * 
      * @param locale Optional country/region code (defaults to "us")
      * @param category Optional news category (defaults to "general")
+     * @param page Optional page number (defaults to 1)
      * @param model Spring MVC model to pass data to the view
      * @return Name of the Thymeleaf template to render ("news")
      */
@@ -64,7 +66,13 @@ public class NewsController {
     public String getNews(
             @RequestParam(value = "locale", required = false, defaultValue = "us") String locale,
             @RequestParam(value = "category", required = false, defaultValue = "general") String category,
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             Model model) {
+        
+        // Ensure page number is at least 1
+        if (page < 1) {
+            page = 1;
+        }
         
         // Provide a curated list of popular regions for the dropdown
         // Using LinkedHashMap to maintain insertion order in the UI
@@ -89,12 +97,15 @@ public class NewsController {
         availableCategories.put("sports", "Sports");
         availableCategories.put("technology", "Technology");
         
-        // Fetch articles from service layer for the specified locale and category
-        model.addAttribute("articles", newsService.getTopStories(locale, category));
+        // Fetch articles from service layer for the specified locale, category, and page
+        model.addAttribute("articles", newsService.getTopStories(locale, category, page));
         model.addAttribute("regions", availableRegions);
         model.addAttribute("categories", availableCategories);
         model.addAttribute("selectedLocale", locale);
         model.addAttribute("selectedCategory", category);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("previousPage", page - 1);
+        model.addAttribute("nextPage", page + 1);
         
         // Return view name - Spring resolves this to src/main/resources/templates/news.html
         return "news";

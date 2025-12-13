@@ -30,21 +30,41 @@ public class NewsServiceImpl implements NewsService {
     // Inject API token from properties file - keeps sensitive data out of code
     @Value("${token}")
     private String token;
+    
+    // Inject RestTemplate for HTTP communication - enables easier testing
+    private final RestTemplate restTemplate;
+    
+    /**
+     * Constructor injection of RestTemplate.
+     * Spring will auto-configure a RestTemplate bean if not explicitly defined.
+     * 
+     * @param restTemplate The REST client for making HTTP requests
+     */
+    public NewsServiceImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
 
     /**
-     * Fetches top news stories from The News API for a specific locale and category.
+     * Fetches news stories from The News API for a specific locale, category and page.
      * 
      * Uses Spring's caching abstraction with Caffeine to cache results for 24 hours.
      * This prevents excessive API calls and improves response time for users.
-     * Cache key combines locale and category to ensure filter-specific caching.
+     * Cache key combines locale, category and page to ensure filter and pagination-specific caching.
+     * 
+     * Pagination logic:
+     * - Each page shows 3 articles
+     * - Page 1 shows articles 0-2 (offset 0)
+     * - Page 2 shows articles 3-5 (offset 3)
+     * - Page 3 shows articles 6-8 (offset 6)
      * 
      * @param locale The country/region code (e.g., "us", "gb", "au")
      * @param category The news category (e.g., "general", "business", "technology")
-     * @return List of up to 3 news articles, or empty list if API call fails
+     * @param page The page number (1-indexed)
+     * @return List of up to 3 news articles for the specified page, or empty list if API call fails
      */
     @Override
-    @Cacheable(value = "newsCache", key = "#locale + '-' + #category", unless = "#result.isEmpty()")
-    public List<NewsArticle> getTopStories(String locale, String category) {
+    @Cacheable(value = "newsCache", key = "#locale + '-' + #category + '-' + #page", unless = "#result.isEmpty()")
+    public List<NewsArticle> getTopStories(String locale, String category, int page) {
         // Default to US if no locale specified
         if (locale == null || locale.trim().isEmpty()) {
             locale = "us";
@@ -55,11 +75,18 @@ public class NewsServiceImpl implements NewsService {
             category = "general";
         }
         
-        // Using RestTemplate for HTTP communication - Spring's synchronous REST client
-        RestTemplate restTemplate = new RestTemplate();
-        // Build API URL with dynamic locale and category parameters
+        // Ensure page is at least 1
+        if (page < 1) {
+            page = 1;
+        }
+        
+        // Limit to 3 articles per page for optimal user experience
+        int limit = 3;
+        
+        // Build API URL with dynamic locale, category, limit and page parameters
         String apiUrl = "https://api.thenewsapi.com/v1/news/top?api_token=" + token 
-                + "&locale=" + locale + "&categories=" + category + "&limit=3";
+                + "&locale=" + locale + "&categories=" + category 
+                + "&limit=" + limit + "&page=" + page;
         
         List<NewsArticle> articles = new ArrayList<>();
         

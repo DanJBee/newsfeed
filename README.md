@@ -5,15 +5,16 @@ News project for FSP Assessment Day
 
 ## Project Overview
 
-This is a Spring Boot web application that displays the top 3 news stories from The News API. It demonstrates clean architecture, SOLID principles, and modern Java development practices.
+This is a Spring Boot web application that displays the top 3 news stories from The News API. It demonstrates clean architecture, SOLID principles and modern Java development practices.
 
 ## Key Features
 
-- **Regional News Filtering:** Users can select from 8 different regions (US, UK, Australia, Canada, India, Ireland, New Zealand, Singapore)
-- **Category Filtering:** Users can filter by 7 news categories (General, Business, Entertainment, Health, Science, Sports, Technology)
-- **Combined Filtering:** Both region and category filters work simultaneously for precise news discovery
-- **Smart Caching:** Region and category-specific caching ensures fast load times while respecting API limits
-- **Responsive Design:** Clean, mobile-friendly interface with flexible filter layout
+- **Regional News Filtering:** Users can select from 8 different regions (US, UK, Australia, Canada, India, Ireland, New Zealand and Singapore)
+- **Category Filtering:** Users can filter by 7 news categories (General, Business, Entertainment, Health, Science, Sports and Technology)
+- **Pagination:** Navigate through multiple pages of news articles (3 articles per page)
+- **Combined Filtering:** Region, category and pagination work simultaneously for precise news discovery
+- **Smart Caching:** Region, category and page-specific caching ensures fast load times whilst respecting API limits
+- **Responsive Design:** Clean, mobile-friendly interface with flexible filter and pagination layout
 - **External Links:** Direct links to full articles on original news sources
 
 ## Architecture & Design Decisions
@@ -48,28 +49,39 @@ I structured the application using the MVC pattern with clear separation of conc
 
 **Caching Strategy**
 - Implemented Spring Cache with Caffeine to respect API rate limits
-- Cache is **combination-specific** using composite keys (locale + category)
-- Cache key format: `"us-business"`, `"gb-technology"`, etc.
-- Ensures users can switch filters without stale data
+- Cache is **combination-specific** using composite keys (locale + category + page)
+- Cache key format: `"us-business-1"`, `"gb-technology-2"`, etc.
+- Ensures users can switch filters or pages without stale data
 - 24-hour cache expiration balances freshness with API conservation
 - Graceful degradation: returns empty list on API failure rather than crashing
 
 **Query Parameter Handling**
 - Uses `@RequestParam` with default values for clean URL structure
-- Supports multiple filter combinations via query parameters
-- Example: `/news?locale=gb&category=technology` (UK technology news)
-- Both parameters are optional and have sensible defaults (US, General)
+- Supports multiple filter combinations and pagination via query parameters
+- Example: `/news?locale=gb&category=technology&page=2` (UK technology news, page 2)
+- All parameters are optional with sensible defaults (US, General, Page 1)
 - LinkedHashMap maintains consistent filter ordering in dropdowns
+
+**Pagination Implementation**
+- Each page displays 3 articles for optimal readability
+- Page numbers are 1-indexed for user-friendliness
+- API offset calculation: `(page - 1) * limit`
+- Previous button disabled on page 1 to prevent invalid navigation
+- Next button always available (API returns empty if no more results)
+- Filter changes reset to page 1 for better UX
 
 ## Technologies Used
 
-- **Spring Boot 4.0.0** - Application framework
-- **Spring Web MVC** - Web layer
-- **Thymeleaf** - Server-side templating engine
-- **Spring Cache + Caffeine** - Caching abstraction
-- **Jackson** - JSON parsing
-- **Lombok** - Reduces boilerplate code
-- **Maven** - Build tool
+- **Spring Boot 4.0.0:** Application framework
+- **Spring Web MVC:** Web layer
+- **Thymeleaf:** Server-side templating engine
+- **Spring Cache + Caffeine:** Caching abstraction
+- **Jackson:** JSON parsing
+- **Lombok:** Reduces boilerplate code
+- **Maven:** Build tool
+- **JUnit 5 (Jupiter):** Unit testing framework
+- **Mockito:** Mocking framework for isolated unit testing
+- **Spring Test:** Testing support for Spring MVC and MockMvc
 
 ## References
 
