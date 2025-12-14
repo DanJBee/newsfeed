@@ -12,56 +12,19 @@ import java.util.Map;
 /**
  * Controller for handling news-related HTTP requests.
  * 
- * This class follows the MVC (Model-View-Controller) pattern:
- * - Receives HTTP requests
- * - Delegates business logic to the service layer
- * - Passes data to the view (Thymeleaf template)
- * 
- * Uses constructor injection for dependencies - recommended best practice
- * as it makes dependencies explicit and enables easier testing.
- * 
  * @author Daniel Bee
  */
 @Controller
 public class NewsController {
 
-    // Final field ensures immutability - dependency can't be changed after construction
     private final NewsService newsService;
 
-    /**
-     * Constructor injection of NewsService.
-     * 
-     * Spring automatically detects and injects the NewsService implementation.
-     * This approach is preferred over field injection as it:
-     * - Makes dependencies explicit
-     * - Enables testing with mock services
-     * - Ensures required dependencies are provided
-     * 
-     * @param newsService The news service implementation
-     */
+    // Constructor injection
     public NewsController(NewsService newsService) {
         this.newsService = newsService;
     }
 
-    /**
-     * Handles GET requests to /news endpoint with optional locale, category and page parameters.
-     * 
-     * Retrieves news stories for the specified region, category and page number, adding them to the model
-     * for rendering in the Thymeleaf template. All filters can be applied simultaneously with pagination.
-     * 
-     * Example URLs:
-     * - /news (defaults to US, general, page 1)
-     * - /news?locale=gb (UK news, general category, page 1)
-     * - /news?category=business (US business news, page 1)
-     * - /news?locale=au&category=technology (Australian technology news, page 1)
-     * - /news?locale=au&category=technology&page=2 (Australian technology news, page 2)
-     * 
-     * @param locale Optional country/region code (defaults to "us")
-     * @param category Optional news category (defaults to "general")
-     * @param page Optional page number (defaults to 1)
-     * @param model Spring MVC model to pass data to the view
-     * @return Name of the Thymeleaf template to render ("news")
-     */
+    // Handles GET requests to /news endpoint
     @GetMapping("/news")
     public String getNews(
             @RequestParam(value = "locale", required = false, defaultValue = "us") String locale,
@@ -69,13 +32,11 @@ public class NewsController {
             @RequestParam(value = "page", required = false, defaultValue = "1") int page,
             Model model) {
         
-        // Ensure page number is at least 1
         if (page < 1) {
             page = 1;
         }
         
-        // Provide a curated list of popular regions for the dropdown
-        // Using LinkedHashMap to maintain insertion order in the UI
+        // Available regions for dropdown
         Map<String, String> availableRegions = new LinkedHashMap<>();
         availableRegions.put("us", "United States");
         availableRegions.put("gb", "United Kingdom");
@@ -86,8 +47,7 @@ public class NewsController {
         availableRegions.put("nz", "New Zealand");
         availableRegions.put("sg", "Singapore");
         
-        // Provide a list of news categories
-        // These categories are supported by The News API
+        // Available categories for dropdown
         Map<String, String> availableCategories = new LinkedHashMap<>();
         availableCategories.put("general", "General");
         availableCategories.put("business", "Business");
