@@ -52,11 +52,26 @@ Used constructor injection for better testability - makes it easy to provide moc
 
 ## Testing
 
+The application includes comprehensive test coverage at multiple levels:
+
+### Unit Tests
 Basic unit tests cover:
 - Default parameter handling
 - Filter combinations (region, category, pagination)
 - API response parsing
 - Error handling when the API is unavailable
+
+### End-to-End Tests
+E2E tests verify the entire application stack including:
+- Full HTTP request/response cycle through all layers
+- Integration with the external News API
+- All regional locales (US, UK, Australia, Canada, India, Ireland, New Zealand, Singapore)
+- All category filters (General, Business, Entertainment, Health, Science, Sports, Technology)
+- Pagination functionality across pages
+- Multiple parameter combinations
+- Graceful handling of edge cases
+
+E2E tests run against a real embedded server instance to ensure the complete system works as expected in production-like conditions.
 
 ## References
 
