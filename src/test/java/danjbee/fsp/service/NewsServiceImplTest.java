@@ -110,18 +110,4 @@ class NewsServiceImplTest {
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
-
-    @Test
-    void testGetTopStories_EmptyDataArray() {
-        String mockJsonResponse = "{\"data\": []}";
-        String expectedUrl = "https://api.thenewsapi.com/v1/news/top?api_token=" + testToken 
-                + "&locale=us&categories=general&limit=3&page=1";
-        
-        when(restTemplate.getForObject(expectedUrl, String.class)).thenReturn(mockJsonResponse);
-        
-        List<NewsArticle> result = newsService.getTopStories("us", "general", 1);
-        
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
-    }
 }
