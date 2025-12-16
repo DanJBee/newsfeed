@@ -1,7 +1,10 @@
 package danjbee.fsp.e2e;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
@@ -17,9 +20,13 @@ import static org.junit.jupiter.api.Assertions.*;
  * including the controller, service layer and external API integration.
  * Tests are run against a real embedded server instance.
  * 
+ * Tests are ordered to maximise cache efficiency and minimise API calls.
+ * Cache keys are based on locale, category and page number combinations.
+ * 
  * @author Daniel Bee
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class NewsApplicationE2ETest {
 
     @LocalServerPort
@@ -36,8 +43,10 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(1)
     void testNewsEndpoint_DefaultParameters() {
-        // Test the /news endpoint with default parameters
+        // Test the /news endpoint with default parameters (us-general-1)
+        // This will make the first API call and populate the cache
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl + "/news",
                 String.class
@@ -55,8 +64,9 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(2)
     void testNewsEndpoint_CustomLocale() {
-        // Test with UK locale
+        // Test with UK locale (gb-general-1)
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl + "/news?locale=gb",
                 String.class
@@ -71,8 +81,9 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(3)
     void testNewsEndpoint_CustomCategory() {
-        // Test with business category
+        // Test with business category (us-business-1)
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl + "/news?category=business",
                 String.class
@@ -87,8 +98,9 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(4)
     void testNewsEndpoint_WithPagination() {
-        // Test pagination functionality
+        // Test pagination functionality (us-general-2)
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl + "/news?page=2",
                 String.class
@@ -99,8 +111,9 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(5)
     void testNewsEndpoint_MultipleParameters() {
-        // Test with multiple query parameters
+        // Test with multiple query parameters (au-technology-1)
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl + "/news?locale=au&category=technology&page=1",
                 String.class
@@ -117,9 +130,10 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(6)
     void testNewsEndpoint_InvalidPageNumber() {
         // Test that invalid page numbers are handled gracefully
-        // Should default to page 1
+        // Should default to page 1 (us-general-1, uses cached data)
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl + "/news?page=0",
                 String.class
@@ -130,8 +144,11 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(7)
     void testNewsEndpoint_AllRegions() {
         // Test all available regions to ensure they work
+        // First 3 regions reuse cached data: us, gb, au already tested
+        // Only 5 new API calls needed for: ca, in, ie, nz, sg
         String[] regions = {"us", "gb", "au", "ca", "in", "ie", "nz", "sg"};
         
         for (String region : regions) {
@@ -148,10 +165,13 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(8)
     void testNewsEndpoint_AllCategories() {
         // Test all available categories
-        String[] categories = {"general", "business", "entertainment", 
-                "health", "science", "sports", "technology"};
+        // First 3 categories reuse cached data: general, business, technology already tested
+        // Only 4 new API calls needed for: entertainment, health, science, sports
+        String[] categories = {"general", "business", "technology", "entertainment", 
+                "health", "science", "sports"};
         
         for (String category : categories) {
             ResponseEntity<String> response = restTemplate.getForEntity(
@@ -167,6 +187,7 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(9)
     void testRootRedirect() {
         // Test if root URL redirects or serves content
         try {
@@ -186,6 +207,7 @@ class NewsApplicationE2ETest {
     }
 
     @Test
+    @Order(10)
     void testApplicationContextLoads() {
         // Verify Spring context loads successfully
         assertNotNull(restTemplate, "RestTemplate should be initialised");
